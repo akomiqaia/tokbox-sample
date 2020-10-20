@@ -1,5 +1,3 @@
-
-
 const url = "http://localhost:8080/";
 
 fetch(url)
@@ -10,7 +8,7 @@ fetch(url)
   });
 
 function initializeSession(apiKey, sessionId, token) {
-  var session = OT.initSession(apiKey, sessionId);
+  const session = OT.initSession(apiKey, sessionId);
 
   // Subscribe to a newly created stream
   session.on("streamCreated", function (event) {
@@ -25,10 +23,23 @@ function initializeSession(apiKey, sessionId, token) {
       handleError
     );
   });
-  // Create a publisher
-  var publisher = OT.initPublisher(
+
+  let isScreenSharing = false
+
+  const publisher = OT.initPublisher(
     "publisher",
     {
+      insertMode: "append",
+      width: "100%",
+      height: "100%",
+    },
+    handleError
+  );
+
+  const screenSharePublisher = OT.initPublisher(
+    "screen-preview",
+    {
+      videoSource: "screen",
       insertMode: "append",
       width: "100%",
       height: "100%",
@@ -42,13 +53,12 @@ function initializeSession(apiKey, sessionId, token) {
     if (error) {
       handleError(error);
     } else {
-      session.publish(publisher, handleError);
+      isScreenSharing ? session.publish(screenSharePublisher, handleError) : session.publish(publisher, handleError);
     }
   });
 
-
   // chat section
-  var msgHistory = document.querySelector("#history");
+  let msgHistory = document.querySelector("#history");
   session.on("signal:msg", function signalCallback(event) {
     var msg = document.createElement("p");
     msg.textContent = event.data;
@@ -60,13 +70,13 @@ function initializeSession(apiKey, sessionId, token) {
     msg.scrollIntoView();
   });
   // Text chat
-  var form = document.querySelector("form");
-  var msgTxt = document.querySelector("#msgTxt");
-  
+  const form = document.querySelector("form");
+  const msgTxt = document.querySelector("#msgTxt");
+
   // Send a signal once the user enters data in the form
   form.addEventListener("submit", function submit(event) {
     event.preventDefault();
-  
+
     session.signal(
       {
         type: "msg",
@@ -85,44 +95,46 @@ function initializeSession(apiKey, sessionId, token) {
   // screen sahring
   const screenShareButton = document.querySelector("#start-screensahre");
   const stopScreenShareButton = document.querySelector("#stop-screensahre");
-  console.log(stopScreenShareButton)
-  screenShareButton.addEventListener("click", () => {
-    checkScreenSharingCapability();
-  });
   
-  stopScreenShareButton.addEventListener("click", () => {
-    // session.unpublish(publisher)
+  console.log(stopScreenShareButton);
+  screenShareButton.addEventListener("click", () => {
+    // checkScreenSharingCapability(session);
+    isScreenSharing = true
   });
 
-  function checkScreenSharingCapability() {
-    OT.checkScreenSharingCapability(function (response) {
-      if (!response.supported || response.extensionRegistered === false) {
-        // This browser does not support screen sharing.
-      } else if (response.extensionInstalled === false) {
-        // Prompt to install the extension.
-      } else {
-        // Screen sharing is available. Publish the screen.
-        var publisher = OT.initPublisher(
-          "screen-preview",
-          { videoSource: "screen" },
-          function (error) {
-            if (error) {
-              // Look at error.message to see what went wrong.
-            } else {
-              session.publish(publisher, function (error) {
-                if (error) {
-                  // Look error.message to see what went wrong.
-                }
-              });
-            }
-          }
-        );
-      }
-    });
-  }
+  stopScreenShareButton.addEventListener("click", () => {
+    isScreenSharing = false
+  });
 }
 
-
+function checkScreenSharingCapability(session) {
+  OT.checkScreenSharingCapability(function (response) {
+    if (!response.supported || response.extensionRegistered === false) {
+      // This browser does not support screen sharing.
+    } else if (response.extensionInstalled === false) {
+      // Prompt to install the extension.
+    } else {
+      // Screen sharing is available. Publish the screen.
+      const publisher = OT.initPublisher(
+        "screen-preview",
+        { videoSource: "screen" },
+        function (error) {
+          if (error) {
+            // Look at error.message to see what went wrong.
+            handleError(error);
+          } else {
+            session.publish(publisher, function (error) {
+              if (error) {
+                // Look error.message to see what went wrong.
+                handleError(error);
+              }
+            });
+          }
+        }
+      );
+    }
+  });
+}
 
 // Handling all of our errors here by alerting them
 function handleError(error) {
