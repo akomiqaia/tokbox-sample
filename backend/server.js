@@ -19,8 +19,8 @@ const opentok = new OpenTok(apiKey, apiSecret);
 
 // Starts the express app
 function init() {
-  app.listen(3000, function () {
-    console.log("You're app is now ready at http://localhost:3000/");
+  app.listen(8080, function () {
+    console.log("You're app is now ready at http://localhost:8080/");
   });
 }
 
