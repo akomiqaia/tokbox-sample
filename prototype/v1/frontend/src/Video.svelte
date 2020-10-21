@@ -47,14 +47,10 @@ function initializeSession() {
 
 </script>
 
-<div id="videos">
-    <div id="subscriber"></div>
-    <div id="publisher"></div>
-</div>
 
 <style>
 
-#videos {
+.videos {
     position: relative;
     width: 100%;
     height: 100%;
@@ -62,7 +58,7 @@ function initializeSession() {
     margin-right: auto;
 }
 
-#subscriber {
+.subscriber {
     position: absolute;
     left: 0;
     top: 0;
@@ -71,7 +67,7 @@ function initializeSession() {
     z-index: 10;
 }
 
-#publisher {
+.publisher {
     position: absolute;
     width: 360px;
     height: 240px;
@@ -83,3 +79,8 @@ function initializeSession() {
 }
 
 </style>
+
+<div id="videos" class="videos">
+  <div id="subscriber" class="subscriber"></div>
+  <div id="publisher" class="publisher"></div>
+</div>
